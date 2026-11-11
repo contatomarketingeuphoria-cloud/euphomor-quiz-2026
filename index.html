@@ -174,4 +174,223 @@
   <div id="cert-modal" class="modal">
     <div class="modal-content">
       <button class="close-modal" onclick="closeCertPreview()">&times;</button>
-      <h3 style="margin-
+      <h3 style="margin-bottom: 15px; color: #fff;">Pré-visualização do Certificado</h3>
+      <div style="overflow-x: auto; width: 100%; display: flex; justify-content: center; margin-bottom: 20px;" id="modal-cert-slot">
+        <!-- Rendered certificate clone -->
+      </div>
+      <button class="btn" style="max-width: 300px;" onclick="downloadPNGModal()">Baixar PNG de Teste</button>
+    </div>
+  </div>
+
+  <script>
+    const defaultData = {
+      certTitle: "Certificado de Aprovação",
+      certSubtitle: "Euphomor 2026",
+      certDesc: "Você foi aprovado como Euphomor de carteirinha no ano de 2026 com carga horária de muitos livros da sua cobrinha favorita. Nos vemos em 2027 para mais",
+      certVal: "Editora Euphoria",
+      questions: [
+        { title: "1. Qual é o principal objetivo do clube O Covil das Cobrinhas?", options: ["Promover lançamentos literários", "Reunir leitores engajados e leituras conjuntas", "Vender produtos de papelaria", "Organizar feiras de livros"], correct: 1 },
+        { title: "2. Em que ano a Editora Euphoria realizou suas principais ativações na Bienal?", options: ["2024", "2025", "2026", "2027"], correct: 2 },
+        { title: "3. O que define um verdadeiro 'Euphomor de carteirinha'?", options: ["Ler apenas um livro por ano", "Acompanhar lançamentos, interagir nas redes e viver as histórias", "Comprar brindes físicos", "Seguir o autor nas redes sociais"], correct: 1 },
+        { title: "4. Qual tom faz parte da identidade visual minimalista da marca?", options: ["Azul neon", "Rosa vibrante #FF2A85", "Verde limão", "Amarelo pastel"], correct: 1 },
+        { title: "5. Qual é o foco principal das obras publicadas?", options: ["Ficção contemporânea e romances cativantes", "Manuais técnicos de programação", "Livros escolares", "Poesia clássica do século XIX"], correct: 0 },
+        { title: "6. Como os leitores interagem nos clubes de leitura?", options: ["Apenas por cartas", "Através de redes sociais como TikTok e Instagram", "Por ligações telefônicas", "Em fóruns antigos de internet"], correct: 1 },
+        { title: "7. Qual é o propósito do certificado emitido ao final?", options: ["Validar a aprovação oficial no universo da editora", "Servir de diploma escolar", "Comprovante de compra", "Ingresso para eventos"], correct: 0 },
+        { title: "8. Onde ficam salvas as configurações e dados do quiz?", options: ["No servidor externo", "No armazenamento local do navegador (localStorage)", "Numa planilha de Excel física", "Em nuvem privada"], correct: 1 },
+        { title: "9. Qual a importância das leituras conjuntas?", options: ["Dividir opiniões", "Engajar a comunidade e debater os enredos coletivamente", "Acelerar a leitura sem absorver", "Substituir os livros físicos"], correct: 1 },
+        { title: "10. Qual é a mensagem final para os leitores em 2026?", options: ["Até breve", "Nos vemos em 2027 para mais", "Fim das leituras", "Até o próximo ano"], correct: 1 }
+      ]
+    };
+
+    let appData = JSON.parse(localStorage.getItem('euphoria_quiz_data')) || defaultData;
+    let currentMode = 'quiz';
+
+    function init() {
+      renderQuiz();
+      renderEditorFields();
+    }
+
+    function toggleMode() {
+      if (currentMode === 'editor') {
+        currentMode = 'quiz';
+        document.getElementById('nav-toggle').innerText = 'Modo Editor';
+        showView('view-quiz');
+      } else {
+        currentMode = 'editor';
+        document.getElementById('nav-toggle').innerText = 'Ver Quiz / Sair';
+        showView('view-editor');
+      }
+    }
+
+    function showView(viewId) {
+      document.getElementById('view-quiz').classList.add('hidden');
+      document.getElementById('view-result').classList.add('hidden');
+      document.getElementById('view-editor').classList.add('hidden');
+      document.getElementById(viewId).classList.remove('hidden');
+    }
+
+    function renderQuiz() {
+      const container = document.getElementById('quiz-form');
+      if (!container) return;
+      let html = '';
+      appData.questions.forEach((q, qIndex) => {
+        html += `<div class="question-card">
+          <div class="question-title">${q.title}</div>
+          <div class="options-list">`;
+        q.options.forEach((opt, oIndex) => {
+          html += `<label class="option-label">
+            <input type="radio" name="q${qIndex}" value="${oIndex}">
+            <span>${opt}</span>
+          </label>`;
+        });
+        html += `</div></div>`;
+      });
+      container.innerHTML = html;
+    }
+
+    function renderEditorFields() {
+      document.getElementById('edit-c-title').value = appData.certTitle;
+      document.getElementById('edit-c-subtitle').value = appData.certSubtitle;
+      document.getElementById('edit-c-desc').value = appData.certDesc;
+      document.getElementById('edit-c-val').value = appData.certVal;
+
+      const qContainer = document.getElementById('editor-questions-container');
+      if (!qContainer) return;
+      let html = '';
+      appData.questions.forEach((q, i) => {
+        html += `<div class="editor-question-box">
+          <div class="form-group">
+            <label>Pergunta ${i+1}</label>
+            <input type="text" id="eq-title-${i}" value="${q.title}">
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">`;
+        q.options.forEach((opt, oi) => {
+          html += `<div class="form-group" style="margin-bottom:8px;">
+            <label style="font-size:11px;">Opção ${oi+1}</label>
+            <input type="text" id="eq-opt-${i}-${oi}" value="${opt}">
+          </div>`;
+        });
+        html += `</div>
+          <div class="form-group" style="margin-top:10px;">
+            <label>Índice da Resposta Correta (0 a 3)</label>
+            <input type="number" min="0" max="3" id="eq-correct-${i}" value="${q.correct}" style="width:100px;">
+          </div>
+        </div>`;
+      });
+      qContainer.innerHTML = html;
+    }
+
+    function saveAndPublish() {
+      appData.certTitle = document.getElementById('edit-c-title').value;
+      appData.certSubtitle = document.getElementById('edit-c-subtitle').value;
+      appData.certDesc = document.getElementById('edit-c-desc').value;
+      appData.certVal = document.getElementById('edit-c-val').value;
+
+      appData.questions.forEach((q, i) => {
+        q.title = document.getElementById(`eq-title-${i}`).value;
+        q.options = [
+          document.getElementById(`eq-opt-${i}-0`).value,
+          document.getElementById(`eq-opt-${i}-1`).value,
+          document.getElementById(`eq-opt-${i}-2`).value,
+          document.getElementById(`eq-opt-${i}-3`).value
+        ];
+        q.correct = parseInt(document.getElementById(`eq-correct-${i}`).value) || 0;
+      });
+
+      localStorage.setItem('euphoria_quiz_data', JSON.stringify(appData));
+      alert('Quiz e Certificado publicados com sucesso!');
+      toggleMode();
+      renderQuiz();
+    }
+
+    function restoreDefaults() {
+      if (confirm('Deseja restaurar as perguntas e textos padrão?')) {
+        appData = JSON.parse(JSON.stringify(defaultData));
+        localStorage.setItem('euphoria_quiz_data', JSON.stringify(appData));
+        renderEditorFields();
+        renderQuiz();
+        alert('Configurações restauradas!');
+      }
+    }
+
+    function submitQuiz() {
+      let score = 0;
+      let total = appData.questions.length;
+
+      appData.questions.forEach((q, i) => {
+        const selected = document.querySelector(`input[name="q${i}"]:checked`);
+        if (selected && parseInt(selected.value) === q.correct) {
+          score++;
+        }
+      });
+
+      const passed = (score / total) >= 0.8;
+      
+      document.getElementById('c-title').innerText = appData.certTitle;
+      document.getElementById('c-subtitle').innerText = appData.certSubtitle;
+      document.getElementById('c-desc').innerText = appData.certDesc;
+      document.getElementById('c-val-brand').innerText = appData.certVal;
+      document.getElementById('c-name').innerText = "Sky Monteiro";
+
+      const msg = document.getElementById('result-message');
+      if (passed) {
+        msg.innerHTML = `Parabéns! Você acertou <strong>${score} de ${total}</strong> questões e garantiu a sua aprovação!`;
+        document.getElementById('certificate').style.display = 'flex';
+      } else {
+        msg.innerHTML = `Você acertou ${score} de ${total} questões. É preciso pelo menos 80% de acertos para emitir o certificado. Tente novamente!`;
+        document.getElementById('certificate').style.display = 'none';
+      }
+
+      currentMode = 'result';
+      showView('view-result');
+    }
+
+    function resetQuiz() {
+      currentMode = 'quiz';
+      document.getElementById('nav-toggle').innerText = 'Modo Editor';
+      renderQuiz();
+      showView('view-quiz');
+    }
+
+    function openCertPreviewFromEditor() {
+      document.getElementById('c-title').innerText = document.getElementById('edit-c-title').value;
+      document.getElementById('c-subtitle').innerText = document.getElementById('edit-c-subtitle').value;
+      document.getElementById('c-desc').innerText = document.getElementById('edit-c-desc').value;
+      document.getElementById('c-val-brand').innerText = document.getElementById('edit-c-val').value;
+      document.getElementById('c-name').innerText = "Sky Monteiro";
+
+      const certClone = document.getElementById('certificate').cloneNode(true);
+      const slot = document.getElementById('modal-cert-slot');
+      slot.innerHTML = '';
+      slot.appendChild(certClone);
+      document.getElementById('cert-modal').style.display = 'flex';
+    }
+
+    function closeCertPreview() {
+      document.getElementById('cert-modal').style.display = 'none';
+    }
+
+    function downloadPNG() {
+      const element = document.getElementById('certificate');
+      html2canvas(element, { scale: 2 }).then(canvas => {
+        const link = document.createElement('a');
+        link.download = 'Certificado_Euphomor_2026.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      });
+    }
+
+    function downloadPNGModal() {
+      const slotCert = document.getElementById('modal-cert-slot').querySelector('.certificate-container');
+      html2canvas(slotCert, { scale: 2 }).then(canvas => {
+        const link = document.createElement('a');
+        link.download = 'Certificado_Euphomor_2026_Preview.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      });
+    }
+
+    window.onload = init;
+  </script>
+</body>
+</html>
